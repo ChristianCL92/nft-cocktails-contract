@@ -31,4 +31,96 @@ describe("UniqueCocktailNfts", function () {
             .to.emit(uniquecocktailsnfts, "Minted").withArgs(userOne.address, 1, "MANHATTAN");
         })
     })
+
+    describe("Minting validation", function () {
+        it("should revert when trying to mint an invalid cocktail nft", async function (){
+            const {uniquecocktailsnfts, userOne} = await deployContractFixture();
+            await expect(uniquecocktailsnfts.connect(userOne).safeMint(userOne.address, "GINFIZZ")).to.be.revertedWith("Invalid cocktail name");
+        })
+
+        it("should revert when user tries to mint same cocktail more than the limit allowed", async function () {
+            const { uniquecocktailsnfts, userOne } = await deployContractFixture();
+            
+            await uniquecocktailsnfts.connect(userOne).safeMint(userOne.address, 'DAIQUIRI');
+
+            await uniquecocktailsnfts.connect(userOne).safeMint(userOne.address, 'DAIQUIRI');
+
+            await expect(uniquecocktailsnfts.connect(userOne).safeMint(userOne.address, 'DAIQUIRI'))
+            .to.be.revertedWith("This cocktail has reached it's minting limit per user");
+
+        })
+    })
+
+    describe("Token URI", function (){
+        it("Should return correct URI for minted cocktail nft", async function () {
+            const { uniquecocktailsnfts, userOne } = await deployContractFixture();
+            
+            await uniquecocktailsnfts.connect(userOne).safeMint(userOne.address, 'DAIQUIRI');
+            const tokenUri = await uniquecocktailsnfts.tokenURI(1);
+
+            expect(tokenUri)
+            .to.equal('https://raw.githubusercontent.com/ChristianCL92/theNftCocktails/main/metadata/Cocktails/DAIQUIRI.json');
+        })
+    })
+
+    describe("Add New Cocktails", function () {
+        it("should allow owner to add new cocktails", async function () {
+
+            const { uniquecocktailsnfts, owner } = await loadFixture(deployContractFixture);
+
+            await uniquecocktailsnfts.connect(owner).addFutureValidCocktails("WHISKEYSOUR");
+
+            await expect(uniquecocktailsnfts.connect(owner).safeMint(owner.address, 'WHISKEYSOUR')).to.emit(uniquecocktailsnfts, "Minted").withArgs(owner.address, 1, "WHISKEYSOUR");
+
+        })
+        it("should revert when non-owner tries to add new cocktails", async function () {
+
+            const { uniquecocktailsnfts,  userOne } = await loadFixture(deployContractFixture);
+
+            await expect(
+              uniquecocktailsnfts
+                .connect(userOne)
+                .addFutureValidCocktails('NEWCOCKTAIL')
+            ).to.be.revertedWithCustomError(uniquecocktailsnfts,'OwnableUnauthorizedAccount');
+        })
+
+        it("should revert when adding an existing cocktail", async function () {
+            const { uniquecocktailsnfts, owner } = await loadFixture(deployContractFixture);
+
+            await expect(
+              uniquecocktailsnfts
+                .connect(owner)
+                .addFutureValidCocktails('COSMOPOLITAN')
+            ).to.be.revertedWith(
+              'This cocktail already exists in the contract'
+            );
+        })
+
+    })
+
+    describe("Contract Minting Limit", function () {
+        it("is set to 10000 nfts", async function () {
+                const { uniquecocktailsnfts} = await loadFixture(deployContractFixture);
+
+                const mintingLimit = await uniquecocktailsnfts.limit();
+                expect(mintingLimit).to.equal(10000);
+
+        })
+    })
+
+    describe("Contract Limits", function () {
+        it("should keep track of token Ids correctly when minting", async function () {
+            const { uniquecocktailsnfts, userOne} = await loadFixture(deployContractFixture);
+
+            expect(await uniquecocktailsnfts.tokenIds()).to.equal(0);
+
+            await uniquecocktailsnfts.connect(userOne).safeMint(userOne.address, "MANHATTAN");
+            expect (await uniquecocktailsnfts.tokenIds()).to.equal(1);
+
+            await uniquecocktailsnfts .connect(userOne).safeMint(userOne.address, 'MOJITO');
+            expect(await uniquecocktailsnfts.tokenIds()).to.equal(2);
+            
+        })
+    })
+
 })
