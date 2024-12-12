@@ -63,41 +63,6 @@ describe("UniqueCocktailNfts", function () {
         })
     })
 
-    describe("Add New Cocktails", function () {
-        it("should allow owner to add new cocktails", async function () {
-
-            const { uniquecocktailsnfts, owner } = await loadFixture(deployContractFixture);
-
-            await uniquecocktailsnfts.connect(owner).addFutureValidCocktails("WHISKEYSOUR");
-
-            await expect(uniquecocktailsnfts.connect(owner).safeMint(owner.address, 'WHISKEYSOUR')).to.emit(uniquecocktailsnfts, "Minted").withArgs(owner.address, 1, "WHISKEYSOUR");
-
-        })
-        it("should revert when non-owner tries to add new cocktails", async function () {
-
-            const { uniquecocktailsnfts,  userOne } = await loadFixture(deployContractFixture);
-
-            await expect(
-              uniquecocktailsnfts
-                .connect(userOne)
-                .addFutureValidCocktails('NEWCOCKTAIL')
-            ).to.be.revertedWithCustomError(uniquecocktailsnfts,'OwnableUnauthorizedAccount');
-        })
-
-        it("should revert when adding an existing cocktail", async function () {
-            const { uniquecocktailsnfts, owner } = await loadFixture(deployContractFixture);
-
-            await expect(
-              uniquecocktailsnfts
-                .connect(owner)
-                .addFutureValidCocktails('COSMOPOLITAN')
-            ).to.be.revertedWith(
-              'This cocktail already exists in the contract'
-            );
-        })
-
-    })
-
     describe("Contract Minting Limit", function () {
         it("is set to 10000 nfts", async function () {
                 const { uniquecocktailsnfts} = await loadFixture(deployContractFixture);

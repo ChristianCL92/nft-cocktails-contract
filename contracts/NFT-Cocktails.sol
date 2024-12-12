@@ -56,15 +56,6 @@ contract UniqueCocktailNfts is ERC721, ERC721URIStorage, Ownable {
         emit Minted (to, tokenIds, cocktail);
     }
 
-    function addFutureValidCocktails(string memory cocktail) 
-    public
-    onlyOwner
-    withinMintLimit 
-    {
-        require(validCocktails[cocktail] == false, "This cocktail already exists in the contract");
-        validCocktails[cocktail] = true;
-    }
-
     function tokenURI(uint256 tokenId)
         public
         view
