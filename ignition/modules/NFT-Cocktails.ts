@@ -5,11 +5,16 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const UniqueCocktailNftsModule = buildModule('UniqueCocktailNftsModule',(m) => {
-    const Owner_address = process.env.SEPOLIA_PUBLIC_ADDRESS;
-    if (!Owner_address) {
-        throw new Error("SEPOLIA_PUBLIC_ADDRESS is not defined in the environment variables");
+
+    const ownerAddress = process.env.SEPOLIA_PUBLIC_ADDRESS;
+
+    if (!ownerAddress) {
+      throw new Error(
+        'SEPOLIA_PUBLIC_ADDRESS is not defined in the environment variables'
+      );
     }
-    const UniqueCocktailNfts = m.contract('UniqueCocktailNfts', [Owner_address], {});
+    
+    const UniqueCocktailNfts = m.contract('UniqueCocktailNfts',[ownerAddress],{});
 
     return { UniqueCocktailNfts };
   }
